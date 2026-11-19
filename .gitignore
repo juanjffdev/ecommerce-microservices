@@ -1,0 +1,11 @@
+#Environment variables
+.env
+
+#Local Agents
+AGENTS.md
+
+#IDE Configuration
+.idea
+
+#Private Requirements
+mvp1.md
