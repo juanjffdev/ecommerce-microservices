@@ -2,6 +2,7 @@ package com.solenia.auth_service.adapter.web.exception;
 
 import com.solenia.auth_service.domain.exception.EmailAlreadyExistException;
 import com.solenia.auth_service.domain.exception.InvalidCredentialException;
+import com.solenia.auth_service.domain.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -24,6 +25,18 @@ public class AuthExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex){
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                404,
+                "RESOURCE_NOT_FOUND",
+                ex.getMessage()
+        );
+
+        return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
     @ExceptionHandler(InvalidCredentialException.class)

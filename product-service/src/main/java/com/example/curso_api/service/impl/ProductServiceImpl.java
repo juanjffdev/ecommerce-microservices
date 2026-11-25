@@ -18,6 +18,7 @@ import com.example.curso_api.logging.ProductLogEvent;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.ApplicationArguments;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -41,9 +42,9 @@ public class ProductServiceImpl implements ProductoService {
 
     @Override
     public ProductoDTO crearProducto(Long idCategoria, ProductoDTO productoDTO) {
-        log.debug("Iniciando creación de product para Categoría ID = {}",idCategoria);
+        AppLogger.debug(log,"CREATE_NEW_PRODUCT","Categoria id: "+idCategoria);
         Categoria categoria = categoriaRepository.findById(idCategoria)
-                .orElseThrow(()->new ResourceNotFoundException("No existe categoria asociada a" + idCategoria));
+                .orElseThrow(()->new ResourceNotFoundException("No existe categoria asociada a " + idCategoria));
 
         if(productoDTO.getPrecio()==null || productoDTO.getPrecio() <=0){
             throw new BadRequestException("El precio del producto debe ser mayor que 0");
@@ -52,9 +53,9 @@ public class ProductServiceImpl implements ProductoService {
         Producto producto = productoMapper.toEntity(productoDTO);
         producto.setCategoria(categoria);
 
-        log.debug("Guardando producto, Categoría ID = {}",idCategoria);
+        AppLogger.debug(log,"NEW_PRODUCT_VALID");
         Producto productoGuardar = productoRepository.save(producto);
-        log.info("Producto guardado. Producto id = {}",productoGuardar.getIdProducto());
+        AppLogger.info(log,"NEW_PRODCUTE_CREATED","Producto creado con éxito","Id Producto = "+ productoGuardar.getIdProducto());
         return productoMapper.toDTO(productoGuardar);
     }
 
@@ -64,14 +65,15 @@ public class ProductServiceImpl implements ProductoService {
         List<ProductoDTO> response = productos.stream()
                 .map(productoMapper::toDTO)
                 .toList();
-
+        AppLogger.info(log,"GET_PRODUCT_LIST","Lista de productos obtenida");
         return response;
     }
 
     @Override
     public Optional<ProductoDTO> consultarProductosPorId(Long idProducto) {
         Optional<Producto> producto=productoRepository.findByIdProducto(idProducto);
-        log.info("Producto con id {} encontrado", idProducto);
+        producto.ifPresent(p -> AppLogger.info(log, "PRODUCT_FOUND_BY_ID", "Producto encontrado con id: " + idProducto));
+
         return producto.map(productoMapper::toDTO);
     }
 
@@ -94,12 +96,17 @@ public class ProductServiceImpl implements ProductoService {
 
     @Override
     public List<ProductoDTO> consultarProductoPorCategoria(String categoria) {
-
-        return productoRepository
+        List<ProductoDTO> productoDTOList = productoRepository
                 .findByCategoria_NombreCategoriaIgnoreCase(categoria.trim())
                 .stream()
                 .map(productoMapper::toDTO)
                 .toList();
+        if(productoDTOList.isEmpty()){
+            AppLogger.info(log,"PRODUCT_LIST_NOT_FOUND","Lista de productos por categoría no encontrada");
+            throw new ResourceNotFoundException("Lista de productos vacía o no existente");
+        }
+        AppLogger.info(log,"PRODUCT_LIST_BY_CATEGORY_GENERATED","Lista de productos por categoria obtenida");
+        return productoDTOList;
     }
 
 
@@ -133,11 +140,12 @@ public class ProductServiceImpl implements ProductoService {
     @Transactional
     public ProductoDTO actualizarProducto(Long idProducto, ProductoDTO producto){
         Producto productoExistente= productoRepository.findByIdProducto(idProducto)
-                .orElseThrow(()-> new ResourceNotFoundException(
-                        "Product con ID "+idProducto+" no encontrado"
-                        )
+                .orElseThrow(()-> {
+                    AppLogger.debug(log,"PRODUCT_NOT_FOUND_BY_ID");
+                    return new ResourceNotFoundException("Product con ID "+idProducto+" no encontrado");
+                }
                 );
-        log.debug("Producto con id {} recuperado de la db",idProducto);
+        AppLogger.debug(log,"PRODUCT_FOUND","Producto con id "+idProducto +" recuperado de la db");
         productoExistente.setNombreProducto(producto.getNombreProducto());
         productoExistente.setDescripcion(producto.getDescripcion());
         productoExistente.setCantidad(producto.getCantidad());
@@ -149,14 +157,18 @@ public class ProductServiceImpl implements ProductoService {
         }
 
         productoExistente.setCategoria(
-                categoriaRepository.findById(
-                        producto.getCategoria().getIdCategoria()
-                ).orElseThrow(()->new ResourceNotFoundException(
-                        "No existe categoria con id " + producto.getCategoria().getIdCategoria()
-                )));
+                    categoriaRepository.findById(producto
+                            .getCategoria()
+                            .getIdCategoria())
+                            .orElseThrow(()->{
+                                AppLogger.debug(log,"CATEGORY_NOT_FOUND_BY_ID");
+                                return new ResourceNotFoundException("No existe categoria con id " + producto.getCategoria().getIdCategoria());
+                            }
+                    )
+        );
 
         Producto productoActualizado =productoRepository.save(productoExistente);
-        log.info("Producto con id {} actualizado", idProducto);
+        AppLogger.info(log,"PRODUCT_UPDATED","Producto con id "+idProducto +" actualizado");
         return productoMapper.toDTO(productoActualizado);
     }
 
@@ -180,11 +192,10 @@ public class ProductServiceImpl implements ProductoService {
     public void eliminarProducto(Long idProducto) throws Exception{
         productoRepository.findByIdProducto(idProducto)
                 .orElseThrow(()-> {
-                    log.info("Producto con id {} no encontrado", idProducto);
-
+                    AppLogger.debug(log,"PRODUCTO_NOT_FOUND_BY_ID","Producto con id "+idProducto+" no encontrado");
                     return new Exception("Product con ID "+idProducto+" no encontrado");
                 });
         productoRepository.deleteById(idProducto);
-        log.info("Producto con id {} eliminado", idProducto);
+        AppLogger.info(log,"PRODUCT_DELETED","Producto con id "+idProducto+" eliminado");
     }
 }

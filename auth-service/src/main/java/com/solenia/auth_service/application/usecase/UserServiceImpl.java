@@ -74,7 +74,7 @@ public class UserServiceImpl implements UserService {
     public Optional<UserResponse> buscarUsuarioPorId(Long id) {
         Optional<UserResponse> user = userRepository.findById(id).map(userMapper::toResponse);
         if(!user.isPresent()){
-            AppLogger.info(log,"USER_FOUND_BY_ID","User id = " + id);
+            AppLogger.info(log,"USER_NOT_FOUND_BY_ID","User id = " + id);
             throw new ResourceNotFoundException("No existe usuario con id: "+id);
         }
 
@@ -85,7 +85,7 @@ public class UserServiceImpl implements UserService {
     public Optional<UserResponse> buscarUsuarioPorEmail(String email) {
         Optional<UserResponse> user = userRepository.findByEmail(email).map(userMapper::toResponse);
         if(!user.isPresent()){
-            AppLogger.info(log,"USER_FOUND_BY_EMAIL","User email = ", email);
+            AppLogger.info(log,"USER_NOT_FOUND_BY_EMAIL","User email = ", email);
             throw new ResourceNotFoundException("No existe usuario con email: "+email);
         }
         return user;
