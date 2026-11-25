@@ -17,7 +17,9 @@ services:
       retries: 30
 
   auth-service:
-    build: ./auth-service
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile
     ports:
       - "8080:8080"
     environment:
@@ -31,7 +33,9 @@ services:
         condition: service_healthy
 
   product-service:
-    build: ./product-service
+    build:
+      context: .
+      dockerfile: product-service/Dockerfile
     ports:
       - "8081:8081"
     environment:
@@ -43,5 +47,20 @@ services:
       mysql:
         condition: service_healthy
 
+  alloy:
+    image: grafana/alloy:v1.13.0
+    environment:
+      GRAFANA_CLOUD_OTLP_ENDPOINT: ${GRAFANA_CLOUD_OTLP_ENDPOINT}
+      GRAFANA_INSTANCE_ID: ${GRAFANA_INSTANCE_ID}
+      GCLOUD_RW_API_KEY: ${GCLOUD_RW_API_KEY}
+    volumes:
+      - ./config.alloy:/etc/alloy/config.alloy:ro
+      - alloy_data:/var/lib/alloy
+    command:
+      - run
+      - /etc/alloy/config.alloy
+      - --storage.path=/var/lib/alloy
+
 volumes:
   mysql_data:
+  alloy_data:

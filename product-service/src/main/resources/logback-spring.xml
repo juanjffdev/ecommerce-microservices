@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Formatos y variables de logging de Spring Boot. -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <property name="CONSOLE_LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} [traceId=%X{traceId:-} spanId=%X{spanId:-}] %kvp - %msg%n%ex"/>
+
+    <!-- Salida estándar a la consola. -->
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+    <!-- Envío de eventos de log a OpenTelemetry. -->
+    <appender name="OTEL"
+              class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
+        <captureKeyValuePairAttributes>true</captureKeyValuePairAttributes>
+    </appender>
+
+    <!-- Destinos de los mensajes y nivel general. -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="OTEL"/>
+    </root>
+
+</configuration>

@@ -16,3 +16,24 @@ app:
   jwt:
     secret: ${JWT_SECRET}
     expiration-seconds: ${JWT_EXPIRATION_SECONDS}
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+
+  otlp:
+    metrics:
+      export:
+        url: http://alloy:4318/v1/metrics
+        step: 10s
+
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: http://alloy:4318/v1/traces
+    logging:
+      export:
+        otlp:
+          endpoint: http://alloy:4318/v1/logs

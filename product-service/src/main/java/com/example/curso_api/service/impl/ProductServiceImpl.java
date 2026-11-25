@@ -12,6 +12,10 @@ import com.example.curso_api.mapper.ProductoMapper;
 import com.example.curso_api.repository.CategoriaRepository;
 import com.example.curso_api.repository.ProductoRepository;
 import com.example.curso_api.service.ProductoService;
+import com.solenia.commons.logging.AppLogger;
+import com.solenia.commons.logging.LogResult;
+import com.example.curso_api.logging.ProductLogEvent;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -57,10 +61,11 @@ public class ProductServiceImpl implements ProductoService {
     @Override
     public List<ProductoDTO> consultarProductos() {
         List<Producto> productos= productoRepository.findAll();
-        log.info("Lista de productos obtenida");
-        return productos.stream()
+        List<ProductoDTO> response = productos.stream()
                 .map(productoMapper::toDTO)
                 .toList();
+
+        return response;
     }
 
     @Override
