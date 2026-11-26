@@ -1,3 +1,21 @@
+#CONFIGURAMOS LA CONEXIÓN A LA BASE DE DATOS DE ORDER SERVICE
 spring:
+  server:
+    port: 8082
+
   application:
     name: order-service
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${ORDER_DB_USERNAME}
+    password: ${ORDER_DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+
+clients:
+  product:
+    base-url: ${PRODUCT_SERVICE_URL}
